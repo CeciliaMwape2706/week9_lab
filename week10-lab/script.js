@@ -1,3 +1,4 @@
+import { Product } from "./product.js";
 
 //TASK 1   Grab the heading and the name paragraph to be named 
 const heading = document.querySelector("#mainName");
@@ -79,3 +80,65 @@ contactForm.addEventListener("submit", (e) => {
   }
 });
 
+//Begining of week 10 
+//TASK 1: Fetch a list of users from a public API and show them
+async function loadUsers() {
+  //Show a loading message while we wait for the data (TASK 2)
+  document.querySelector("#userList").innerHTML = "<p>Loading...</p>";
+  try {
+    const res = await fetch("https://jsonplaceholder.typicode.com/users");
+    const data = await res.json();
+    renderUsers(data);
+  } catch (err) {
+    document.querySelector("#userList").innerHTML = "<p>Could not load users.</p>";
+  }
+}
+
+//Turn the list of users into HTML and put it on the page
+function renderUsers(users) {
+  const list = document.querySelector("#userList");
+  list.innerHTML = users.map(u => `<div>${u.name} - ${u.email}</div>`).join("");
+}
+
+//Run the function so it loads as soon as the page opens
+loadUsers();
+
+//TASK 3: Make 3 products using the Product blueprint
+const products = [
+  new Product("Book", 100),
+  new Product("Pen", 20),
+  new Product("Bag", 250)
+];
+
+//TASK 5: Load the saved cart from storage, or start with an empty one
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+//Show each product with its tax-included price and an Add to Cart button
+function renderProducts() {
+  const list = document.querySelector("#productList");
+  list.innerHTML = products.map((p, i) =>
+    `<div>${p.name} - ${p.withTax()} <button onclick="addToCart(${i})">Add to Cart</button></div>`
+  ).join("");
+}
+renderProducts();
+
+//TASK 6: Show the total price of everything in the cart
+function updateCartDisplay() {
+  const total = cart.reduce((sum, name) => {
+    const product = products.find(p => p.name === name);
+    return sum + (product ? product.withTax() : 0);
+  }, 0);
+  document.querySelector("#cartTotal").textContent = "Cart Total: " + total;
+}
+updateCartDisplay();
+
+//Add a product to the cart, save it, and update the total shown on screen
+function addToCart(index) {
+  cart.push(products[index].name);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  console.log("Cart:", cart);
+  updateCartDisplay();
+}
+
+//Make addToCart available to the onclick buttons created above
+window.addToCart = addToCart;
